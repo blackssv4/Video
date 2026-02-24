@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>دردشة فيديو مباشر</title>
     <style>
         * {
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -24,45 +24,45 @@
         .container {
             text-align: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 30px 20px;
             border-radius: 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
         }
 
         h1 {
             color: white;
             margin-bottom: 30px;
-            font-size: 2.2em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2em;
         }
 
-        /* شاشة البداية */
-        #startScreen {
+        /* الشاشات */
+        .screen {
+            display: none;
+        }
+
+        .active-screen {
             display: block;
         }
 
+        /* شاشة البداية */
         .permission-box {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 25px;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
             border-radius: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .permission-item {
             color: white;
             font-size: 1.2em;
             margin: 15px 0;
-            text-align: right;
             padding: 10px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
         }
 
-        .btn-start {
+        .btn {
             width: 100%;
             padding: 20px;
             font-size: 1.5em;
@@ -71,39 +71,398 @@
             cursor: pointer;
             margin: 10px 0;
             font-weight: bold;
-            background: linear-gradient(135deg, #00b09b, #96c93d);
             color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.2s;
         }
 
-        .btn-start:hover {
+        .btn:hover {
             transform: scale(1.02);
         }
 
-        .btn-start:active {
-            transform: scale(0.98);
+        .btn-green {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
         }
 
-        /* شاشة اختيار اللون */
-        #colorScreen {
-            display: none;
+        .btn-red {
+            background: linear-gradient(135deg, #cb2d3e, #ef473a);
         }
 
-        .color-title {
-            color: white;
-            font-size: 1.5em;
-            margin-bottom: 20px;
+        .btn-blue {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
         }
 
-        .btn-color {
-            width: 100%;
-            padding: 25px;
-            font-size: 1.8em;
-            border: none;
+        /* شاشة الفيديو */
+        .videos {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .video-box {
+            background: #1a1a1a;
             border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .video-box video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+            min-height: 250px;
+            transform: scaleX(-1);
+        }
+
+        .label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+        }
+
+        .waiting-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.3em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            font-size: 1em;
+            font-weight: bold;
             cursor: pointer;
+        }
+
+        .message {
+            color: white;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
             margin: 10px 0;
+            border: 1px solid #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 دردشة فيديو مباشر</h1>
+        
+        <!-- شاشة البداية -->
+        <div id="startScreen" class="screen active-screen">
+            <div class="permission-box">
+                <div class="permission-item">🔴 للتحدث مع صديقك</div>
+                <div class="permission-item">📹 نحتاج للوصول إلى الكاميرا</div>
+                <div class="permission-item">🎤 نحتاج للوصول إلى الميكروفون</div>
+            </div>
+            
+            <button class="btn btn-green" onclick="startApp()">
+                ▶️ اضغط لبدء التشغيل
+            </button>
+            
+            <div id="startMessage" class="message"></div>
+        </div>
+
+        <!-- شاشة اختيار اللون -->
+        <div id="colorScreen" class="screen">
+            <h2 style="color: white; margin-bottom: 20px;">اختر لونك</h2>
+            <button class="btn btn-red" onclick="selectColor('red')">🔴 أنا أحمر</button>
+            <button class="btn btn-blue" onclick="selectColor('blue')">🔵 أنا أزرق</button>
+            <div id="colorMessage" class="message"></div>
+        </div>
+
+        <!-- شاشة الفيديو -->
+        <div id="videoScreen" class="screen">
+            <div class="videos">
+                <div class="video-box">
+                    <video id="localVideo" autoplay muted playsinline></video>
+                    <div class="label" id="localLabel">أنا</div>
+                </div>
+                
+                <div class="video-box">
+                    <video id="remoteVideo" autoplay playsinline></video>
+                    <div class="label" id="remoteLabel">الآخر</div>
+                    <div class="waiting-overlay" id="remoteWaiting">⏳ في انتظار الآخر</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" onclick="toggleAudio()" id="audioBtn">🔊 كتم</button>
+                <button class="control-btn" onclick="toggleVideo()" id="videoBtn">📹 إيقاف</button>
+                <button class="control-btn" style="background:#ff4e50;color:white" onclick="exitToStart()">🏠 خروج</button>
+            </div>
+            
+            <div id="videoMessage" class="message"></div>
+        </div>
+    </div>
+
+    <!-- Firebase والمكتبات -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.0/simple-peer.min.js"></script>
+    
+    <script>
+        // ========== إعداد Firebase ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3rEMVnYFDc36O3vZukFbRllAHAbZeNs8",
+            authDomain: "maa27-c17ae.firebaseapp.com",
+            projectId: "maa27-c17ae",
+            storageBucket: "maa27-c17ae.firebasestorage.app",
+            messagingSenderId: "683343880694",
+            appId: "1:683343880694:web:928a9355e7e9471dde67d7"
+        };
+
+        // تهيئة Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ========== المتغيرات ==========
+        let localStream = null;
+        let currentUser = null;
+        let peer = null;
+        let roomListener = null;
+        let isAudioEnabled = true;
+        let isVideoEnabled = true;
+        
+        const ROOM_ID = "video-chat-room";
+
+        // ========== تغيير الشاشات ==========
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active-screen');
+            });
+            document.getElementById(screenId).classList.add('active-screen');
+        }
+
+        // ========== بدء التطبيق ==========
+        async function startApp() {
+            const messageEl = document.getElementById('startMessage');
+            messageEl.innerHTML = '⏳ جاري طلب الصلاحيات...';
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: true 
+                });
+                
+                messageEl.innerHTML = '✅ تم الحصول على الصلاحيات!';
+                
+                setTimeout(() => {
+                    showScreen('colorScreen');
+                }, 1000);
+                
+            } catch (error) {
+                console.error('خطأ:', error);
+                messageEl.innerHTML = `<div class="error-message">❌ خطأ: ${error.message}</div>`;
+                localStream = null;
+            }
+        }
+
+        // ========== اختيار اللون ==========
+        async function selectColor(color) {
+            if (!localStream) {
+                document.getElementById('colorMessage').innerHTML = 
+                    '<div class="error-message">❌ يجب تشغيل الكاميرا أولاً</div>';
+                return;
+            }
+            
+            currentUser = color;
+            showScreen('videoScreen');
+            
+            // عرض الفيديو المحلي
+            const localVideo = document.getElementById('localVideo');
+            localVideo.srcObject = localStream;
+            
+            // تعيين الألوان
+            const localLabel = document.getElementById('localLabel');
+            localLabel.style.background = color === 'red' ? '#ff4e50' : '#2193b0';
+            localLabel.innerHTML = color === 'red' ? '🔴 أنا' : '🔵 أنا';
+            
+            const remoteLabel = document.getElementById('remoteLabel');
+            remoteLabel.style.background = color === 'red' ? '#2193b0' : '#ff4e50';
+            remoteLabel.innerHTML = color === 'red' ? '🔵 الآخر' : '🔴 الآخر';
+            
+            // تجهيز الغرفة
+            await setupRoom();
+        }
+
+        // ========== تجهيز الغرفة ==========
+        async function setupRoom() {
+            const roomRef = db.collection('rooms').doc(ROOM_ID);
+            
+            try {
+                const doc = await roomRef.get();
+                
+                if (!doc.exists) {
+                    await roomRef.set({
+                        red: currentUser === 'red' ? 'waiting' : null,
+                        blue: currentUser === 'blue' ? 'waiting' : null
+                    });
+                } else {
+                    await roomRef.update({
+                        [currentUser]: 'waiting'
+                    });
+                }
+                
+                listenToRoom();
+                document.getElementById('videoMessage').innerHTML = '⏳ في انتظار الآخر...';
+                
+            } catch (error) {
+                console.error('خطأ:', error);
+                document.getElementById('videoMessage').innerHTML = 
+                    '<div class="error-message">❌ خطأ في الاتصال</div>';
+            }
+        }
+
+        // ========== الاستماع للغرفة ==========
+        function listenToRoom() {
+            const roomRef = db.collection('rooms').doc(ROOM_ID);
+            
+            roomListener = roomRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    const otherUser = currentUser === 'red' ? 'blue' : 'red';
+                    
+                    if (data[otherUser] === 'waiting') {
+                        document.getElementById('remoteWaiting').style.display = 'none';
+                        
+                        if (data.red === 'waiting' && data.blue === 'waiting') {
+                            startCall();
+                            roomRef.update({
+                                red: 'calling',
+                                blue: 'calling'
+                            });
+                        }
+                    } else {
+                        document.getElementById('remoteWaiting').style.display = 'flex';
+                    }
+                }
+            });
+        }
+
+        // ========== بدء المكالمة ==========
+        function startCall() {
+            createPeerConnection();
+            document.getElementById('videoMessage').innerHTML = '✅ جاري الاتصال...';
+        }
+
+        // ========== إنشاء اتصال ==========
+        function createPeerConnection() {
+            const roomRef = db.collection('rooms').doc(ROOM_ID);
+            
+            peer = new SimplePeer({
+                initiator: currentUser === 'red',
+                stream: localStream,
+                trickle: false
+            });
+
+            peer.on('signal', (data) => {
+                if (currentUser === 'red') {
+                    roomRef.update({ offer: JSON.stringify(data) });
+                } else {
+                    roomRef.update({ answer: JSON.stringify(data) });
+                }
+            });
+
+            peer.on('stream', (stream) => {
+                document.getElementById('remoteVideo').srcObject = stream;
+                document.getElementById('remoteWaiting').style.display = 'none';
+                document.getElementById('videoMessage').innerHTML = '✅ تم الاتصال!';
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+            });
+
+            roomRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    try {
+                        if (currentUser === 'blue' && data.offer && !data.answer) {
+                            peer.signal(JSON.parse(data.offer));
+                        } else if (currentUser === 'red' && data.answer) {
+                            peer.signal(JSON.parse(data.answer));
+                        }
+                    } catch (e) {}
+                }
+            });
+        }
+
+        // ========== التحكم ==========
+        function toggleAudio() {
+            if (localStream) {
+                localStream.getAudioTracks().forEach(t => t.enabled = !t.enabled);
+                isAudioEnabled = !isAudioEnabled;
+                document.getElementById('audioBtn').innerHTML = isAudioEnabled ? '🔊 كتم' : '🔇 تشغيل';
+            }
+        }
+
+        function toggleVideo() {
+            if (localStream) {
+                localStream.getVideoTracks().forEach(t => t.enabled = !t.enabled);
+                isVideoEnabled = !isVideoEnabled;
+                document.getElementById('videoBtn').innerHTML = isVideoEnabled ? '📹 إيقاف' : '📹 تشغيل';
+            }
+        }
+
+        // ========== الخروج ==========
+        async function exitToStart() {
+            if (roomListener) roomListener();
+            if (peer) peer.destroy();
+            
+            try {
+                await db.collection('rooms').doc(ROOM_ID).delete();
+            } catch (e) {}
+            
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
+            
+            currentUser = null;
+            showScreen('startScreen');
+            document.getElementById('startMessage').innerHTML = '';
+            document.getElementById('remoteVideo').srcObject = null;
+        }
+    </script>
+</body>
+</html>            margin: 10px 0;
             font-weight: bold;
             color: white;
             transition: transform 0.2s;
